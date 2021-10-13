@@ -9,22 +9,26 @@ import Control.Monad
   Here we have an implementation of the game BattleShip in Haskell.
 --}
 
--- |Gives a name to a coordinate pair
+-- -------------------
+-- Type definitions
+-- -------------------
 type Coord = (Int, Int)
-
--- We don't maintain the entire board, just lists of
--- coordinate pairs that have meaning in the game.
 type Hits = [Coord]
 type Misses = [Coord]
 type Ships = [Coord]
 -- |Board is the tuple of ships, hits and misses
+-- |We don't maintain the entire board, just lists of
+-- |coordinate pairs that have meaning in the game.
 type Board = (Ships, Hits, Misses)
 
--- |A constant for the header
+-- ------------------
+-- Board rendering
+-- ------------------
+
+-- The board header row
 boardHeader :: String
 boardHeader = "  0 1 2 3 4 5 6 7 8 9"
 
--- |Draw the board
 renderBoard :: Bool -- ^ False turns off ship rendering
             -> Board -- ^ Ships, Hits, Misses
             -> String
@@ -70,17 +74,68 @@ hiddenShips = renderBoard False
 postGameBoard :: Board -> String
 postGameBoard = renderBoard True
 
+-- --------------------
+-- End Board rendering
+-- --------------------
+
+-- --------------------
+-- IO Handling
+-- --------------------
 splash :: String
 splash = "\n\nWelcome to Haskell BattleShip!\n\nCommand options are (n)ew game or (q)uit"
+
+sillyPairParser :: String -> Maybe Int
+sillyPairParser s
+    | s == "0" = Just 0
+    | s == "1" = Just 1
+    | s == "2" = Just 2
+    | s == "3" = Just 3
+    | s == "4" = Just 4
+    | s == "5" = Just 5
+    | s == "6" = Just 6
+    | s == "7" = Just 7
+    | s == "8" = Just 8
+    | s == "9" = Just 9
+    | otherwise = Nothing
+
+boundsCheck :: String -> String -> Maybe Coord
+boundsCheck x y =
+    let xys = sequence $ fmap sillyPairParser [x,y]
+    in case xys of
+         Just (x':y':_) -> Just (x',y')
+         _ -> Nothing
+
+stringToCoords :: String -> Maybe Coord
+stringToCoords coordStr =
+    case words coordStr of
+      [] -> Nothing
+      (_:[]) -> Nothing
+      (x:y:_) -> boundsCheck x y
+
+-- --------------------
+-- End IO Handling
+-- --------------------
+
+-- --------------------
+-- Game play
+-- --------------------
 
 setShips :: IO [Coord]
 setShips = undefined
 
 takeAShot :: Board -> IO Board
-takeAShot = undefined
+takeAShot board = do
+  putStrLn "Enter your shot coordinates (separated by whitespace) => "
+  coord_str <- getLine
+  putStrLn "not done"
+  return board
 
 play :: IO ()
-play = putStrLn "Playing..."
+play = undefined
+
+-- --------------------
+-- End Game play
+-- --------------------
 
 quit :: IO ()
 quit = do
