@@ -167,8 +167,8 @@ runGame board = do
   let (ships, _, _) = board
   if length ships == 0 then
       do
-        putStrLn "You won!"
         putStrLn $ postGameBoard board
+        putStrLn "You won!"
         exitSuccess
   else do
     board' <- takeAShot board
@@ -188,7 +188,7 @@ play = do
 
 quit :: IO ()
 quit = do
-  putStrLn "\n\nThanks for playing =)"
+  putStrLn "\n\nLeaving so soon?\n"
   exitSuccess
 
 
