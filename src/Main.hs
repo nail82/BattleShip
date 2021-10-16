@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List (intercalate, intersperse)
+import Data.List (intercalate, intersperse, elem, delete)
 import Data.Char (toLower)
 import System.Exit (exitSuccess)
 import Control.Monad
@@ -84,8 +84,8 @@ postGameBoard = renderBoard True
 splash :: String
 splash = "\n\nWelcome to Haskell BattleShip!\n\nCommand options are (n)ew game or (q)uit"
 
-sillyPairParser :: String -> Maybe Int
-sillyPairParser s
+sillyIntParser :: String -> Maybe Int
+sillyIntParser s
     | s == "0" = Just 0
     | s == "1" = Just 1
     | s == "2" = Just 2
@@ -100,7 +100,7 @@ sillyPairParser s
 
 boundsCheck :: String -> String -> Maybe Coord
 boundsCheck x y =
-    let xys = sequence $ fmap sillyPairParser [x,y]
+    let xys = sequence $ fmap sillyIntParser [x,y]
     in case xys of
          Just (x':y':_) -> Just (x',y')
          _ -> Nothing
@@ -120,18 +120,67 @@ stringToCoords coordStr =
 -- Game play
 -- --------------------
 
-setShips :: IO [Coord]
-setShips = undefined
+-- Get a coordinate pair from the user.
+getCoord :: String -> Int -> IO Coord
+getCoord s _ = do
+  putStrLn ("Enter " <> s <> " coordinates (separated by whitespace) => ")
+  coord_str <- getLine
+  let maybe_coord = stringToCoords coord_str
+  case maybe_coord of
+    Just c -> return c
+    Nothing -> do
+        putStrLn "Hmmm, that didn't look right.  Try again.\n"
+        getCoord s 0
+
+
+setShips :: IO Board
+setShips = do
+  putStrLn "How many ships (1-9)?"
+  n <- getLine
+  let maybe_n = sillyIntParser n
+  case maybe_n of
+    Just n' -> do
+             coords <- forM [1..n'] (getCoord "ship")
+             return (coords, [], [])
+    Nothing -> do
+             putStrLn "Hmmm, I need a number from 1 to 9.  Try again.\n"
+             setShips
+
 
 takeAShot :: Board -> IO Board
 takeAShot board = do
-  putStrLn "Enter your shot coordinates (separated by whitespace) => "
-  coord_str <- getLine
-  putStrLn "not done"
-  return board
+  putStrLn $ hiddenShips board
+  coord <- getCoord "shot" 0
+  let (ships, hits, misses) = board
+  let aHit = coord `elem` ships
+  let board' | aHit =
+                 (delete coord ships, (coord:hits), misses)
+             | otherwise =
+                 (ships, hits, (coord:misses))
+  putStrLn $ hiddenShips board'
+  if aHit then putStrLn "A fine hit!" else putStrLn "Missed. derp."
+  return board'
+
+
+runGame :: Board -> IO ()
+runGame board = do
+  let (ships, _, _) = board
+  if length ships == 0 then
+      do
+        putStrLn "You won!"
+        putStrLn $ postGameBoard board
+        exitSuccess
+  else do
+    board' <- takeAShot board
+    runGame board'
+
 
 play :: IO ()
-play = undefined
+play = do
+  board <- setShips
+  runGame board
+
+
 
 -- --------------------
 -- End Game play
