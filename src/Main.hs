@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List (intercalate, intersperse, elem, delete)
+import Data.List (intercalate, intersperse, delete)
 import Data.Char (toLower)
 import System.Exit (exitSuccess)
 import Control.Monad
@@ -12,6 +12,7 @@ import Control.Monad
 -- -------------------
 -- Type definitions
 -- -------------------
+
 type Coord = (Int, Int)
 type Hits = [Coord]
 type Misses = [Coord]
@@ -20,6 +21,7 @@ type Ships = [Coord]
 -- |We don't maintain the entire board, just lists of
 -- |coordinate pairs that have meaning in the game.
 type Board = (Ships, Hits, Misses)
+
 
 -- ------------------
 -- Board rendering
@@ -74,15 +76,10 @@ hiddenShips = renderBoard False
 postGameBoard :: Board -> String
 postGameBoard = renderBoard True
 
--- --------------------
--- End Board rendering
--- --------------------
 
--- --------------------
--- IO Handling
--- --------------------
-splash :: String
-splash = "\n\nWelcome to Haskell BattleShip!\n\nCommand options are (n)ew game or (q)uit"
+-- ---------------------
+-- Coordinate validation
+-- ---------------------
 
 sillyIntParser :: String -> Maybe Int
 sillyIntParser s
@@ -112,15 +109,12 @@ stringToCoords coordStr =
       (_:[]) -> Nothing
       (x:y:_) -> boundsCheck x y
 
--- --------------------
--- End IO Handling
--- --------------------
 
 -- --------------------
 -- Game play
 -- --------------------
 
--- Get a coordinate pair from the user.
+-- |Get a coordinate pair from the user.
 getCoord :: String -> Int -> IO Coord
 getCoord s _ = do
   putStrLn ("Enter " <> s <> " coordinates (separated by whitespace) => ")
@@ -133,6 +127,7 @@ getCoord s _ = do
         getCoord s 0
 
 
+-- |Place ships on the board at the beginning of the game.
 setShips :: IO Board
 setShips = do
   putStrLn "How many ships (1-9)?"
@@ -147,6 +142,7 @@ setShips = do
              setShips
 
 
+-- |Take the user's input for a shot and do the board bookkeeping.
 takeAShot :: Board -> IO Board
 takeAShot board = do
   putStrLn $ hiddenShips board
@@ -162,6 +158,7 @@ takeAShot board = do
   return board'
 
 
+-- |Recursively take shots until all ships are hit
 runGame :: Board -> IO ()
 runGame board = do
   let (ships, _, _) = board
@@ -170,21 +167,21 @@ runGame board = do
         putStrLn $ postGameBoard board
         putStrLn "You won!"
         exitSuccess
-  else do
-    board' <- takeAShot board
-    runGame board'
+  else
+    takeAShot board >>= runGame
 
 
+-- |Kick off the game
 play :: IO ()
-play = do
-  board <- setShips
-  runGame board
-
+play = setShips >>= runGame
 
 
 -- --------------------
--- End Game play
+-- Program entry point
 -- --------------------
+
+splash :: String
+splash = "\n\nWelcome to Haskell BattleShip!\n\nCommand options are (n)ew game or (q)uit"
 
 quit :: IO ()
 quit = do
