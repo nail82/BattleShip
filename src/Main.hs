@@ -2,7 +2,6 @@ module Main where
 
 import Data.List (intercalate, intersperse, delete)
 import Data.Char (toLower)
-import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import System.Exit (exitSuccess)
 import Control.Monad
 
@@ -61,6 +60,7 @@ renderBoard showShips board =
         -- |A recursive function to split the single row of markers
         -- |into a list of rows appending the row number to each row.
         markersToRows :: String -> [String] -> Int -> [String]
+        -- Base case, we're done.
         markersToRows "" rows _ = reverse rows
         markersToRows ms rows n =
             let (r,ms') = splitAt 20 ms
@@ -200,7 +200,6 @@ quit = do
 main :: IO ()
 main =
     do
-      hSetBuffering stdout NoBuffering
       forever $ do
          putStrLn splash
          cmdStr <- getLine
