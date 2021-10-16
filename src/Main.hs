@@ -2,6 +2,7 @@ module Main where
 
 import Data.List (intercalate, intersperse, delete)
 import Data.Char (toLower)
+import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import System.Exit (exitSuccess)
 import Control.Monad
 
@@ -151,7 +152,6 @@ setShips = do
 -- |Take the user's input for a shot and do the board bookkeeping.
 takeAShot :: Board -> IO Board
 takeAShot board = do
-  clearScreen
   putStrLn $ hiddenShips board
   coord <- getCoord "shot" 0
   let (ships, hits, misses) = board
@@ -161,7 +161,6 @@ takeAShot board = do
              | otherwise =
                  (ships, hits, (coord:misses))
   clearScreen
-  putStrLn $ hiddenShips board'
   if aHit then putStrLn "A fine hit!" else putStrLn "Missed. derp."
   return board'
 
@@ -173,8 +172,8 @@ runGame board = do
   if length ships == 0 then
       do
         clearScreen
-        putStrLn $ postGameBoard board
         putStrLn "You won!"
+        putStrLn $ postGameBoard board
         exitSuccess
   else
     takeAShot board >>= runGame
@@ -199,7 +198,10 @@ quit = do
 
 
 main :: IO ()
-main = forever $ do
+main =
+    do
+      hSetBuffering stdout NoBuffering
+      forever $ do
          putStrLn splash
          cmdStr <- getLine
 
