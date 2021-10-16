@@ -198,9 +198,7 @@ quit = do
 
 
 main :: IO ()
-main =
-    do
-      forever $ do
+main = forever $ do
          putStrLn splash
          cmdStr <- getLine
 
