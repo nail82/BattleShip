@@ -126,6 +126,11 @@ getCoord s _ = do
         putStrLn "Hmmm, that didn't look right.  Try again.\n"
         getCoord s 0
 
+printBlank :: Int -> IO ()
+printBlank _ = putStrLn ""
+
+clearScreen :: IO ()
+clearScreen = forM_ [1..50] printBlank
 
 -- |Place ships on the board at the beginning of the game.
 setShips :: IO Board
@@ -136,6 +141,7 @@ setShips = do
   case maybe_n of
     Just n' -> do
              coords <- forM [1..n'] (getCoord "ship")
+             clearScreen
              return (coords, [], [])
     Nothing -> do
              putStrLn "Hmmm, I need a number from 1 to 9.  Try again.\n"
@@ -145,6 +151,7 @@ setShips = do
 -- |Take the user's input for a shot and do the board bookkeeping.
 takeAShot :: Board -> IO Board
 takeAShot board = do
+  clearScreen
   putStrLn $ hiddenShips board
   coord <- getCoord "shot" 0
   let (ships, hits, misses) = board
@@ -153,6 +160,7 @@ takeAShot board = do
                  (delete coord ships, (coord:hits), misses)
              | otherwise =
                  (ships, hits, (coord:misses))
+  clearScreen
   putStrLn $ hiddenShips board'
   if aHit then putStrLn "A fine hit!" else putStrLn "Missed. derp."
   return board'
@@ -164,6 +172,7 @@ runGame board = do
   let (ships, _, _) = board
   if length ships == 0 then
       do
+        clearScreen
         putStrLn $ postGameBoard board
         putStrLn "You won!"
         exitSuccess
