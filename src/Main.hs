@@ -51,8 +51,8 @@ renderBoard showShips board =
         -- Helper functions
         -- |Compute the marker for a coordinate
         boardMarker coord
-            | (elem coord ships) && showShips = 's'
-            | (elem coord ships) && (not showShips) = '_'
+            | (coord `elem` ships) && showShips = 's'
+            | (coord `elem` ships) && not showShips = '_'
             | elem coord hits = 'x'
             | elem coord misses = 'o'
             | otherwise = '_'
@@ -64,7 +64,7 @@ renderBoard showShips board =
         markersToRows "" rows _ = reverse rows
         markersToRows ms rows n =
             let (r,ms') = splitAt 20 ms
-                rowNum = (show n) <> " "
+                rowNum = show n <> " "
             in markersToRows ms' (rowNum <> r:rows) (n+1)
 
     in two_D_board
@@ -98,7 +98,7 @@ sillyIntParser s
 
 boundsCheck :: String -> String -> Maybe Coord
 boundsCheck x y =
-    let xys = sequence $ fmap sillyIntParser [x,y]
+    let xys = mapM sillyIntParser [x,y]
     in case xys of
          Just (x':y':_) -> Just (x',y')
          _ -> Nothing
@@ -107,7 +107,7 @@ stringToCoords :: String -> Maybe Coord
 stringToCoords coordStr =
     case words coordStr of
       [] -> Nothing
-      (_:[]) -> Nothing
+      [_] -> Nothing
       (x:y:_) -> boundsCheck x y
 
 
@@ -157,9 +157,9 @@ takeAShot board = do
   let (ships, hits, misses) = board
   let aHit = coord `elem` ships
   let board' | aHit =
-                 (delete coord ships, (coord:hits), misses)
+                 (delete coord ships, coord:hits, misses)
              | otherwise =
-                 (ships, hits, (coord:misses))
+                 (ships, hits, coord:misses)
   clearScreen
   if aHit then putStrLn "A fine hit!" else putStrLn "Missed. derp."
   return board'
@@ -169,7 +169,7 @@ takeAShot board = do
 runGame :: Board -> IO ()
 runGame board = do
   let (ships, _, _) = board
-  if length ships == 0 then
+  if null ships then
       do
         clearScreen
         putStrLn "You won!"
@@ -205,8 +205,8 @@ main = forever $ do
          -- Handle user input
          let go [] = putStrLn "Oops, need a command."
              go (c:_)
-                 | (toLower c) == 'n' = play
-                 | (toLower c) == 'q' = quit
+                 | toLower c == 'n' = play
+                 | toLower c == 'q' = quit
                  | otherwise = putStrLn $ cmdStr <> " isn't a valid command."
 
          go cmdStr
